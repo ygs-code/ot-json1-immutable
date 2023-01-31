@@ -6,27 +6,58 @@ const apply = otJSON1Immutable.type.applyImmutable;
 const registerSubtype = otJSON1Immutable.type.registerSubtype;
 
 describe("insertOp", () => {
+  // 数组
   it("inserts at root", () => {
     const input = undefined;
-    const output = fromJS([1]);
-    const op = insertOp([], [1]);
+    const output = fromJS([
+      {
+        name: "姚观寿",
+      },
+    ]);
 
+    const op = insertOp(
+      [],
+      [
+        {
+          name: "姚观寿",
+        },
+      ]
+    );
+    // console.log("op====", op);
+    // console.log("output====", output);
+    // console.log("apply(input, op)====", apply(input, op));
+    // let data = apply(input, op)
+    // console.log('data=',data._tail.array[0]._root.entries)
     expect(apply(input, op)).toEqual(output);
   });
 
+  // map 对象
   it("inserts inside Map", () => {
-    const input = fromJS({ a: { b: 1 } });
-    const output = fromJS({ a: { b: 1, c: 2 } });
-    const op = insertOp(["a", "c"], 2);
+    const input = fromJS({ a: { b: 1, c: {} } });
 
+    // 预期结果
+    const output = fromJS({ a: { b: 1, c: { d: 2 } } });
+
+    // 这个是对象的路径 a.c.d 插入2
+    const op = insertOp(["a", "c", "d"], 2);
+
+    // console.log("input=", input);
+    // console.log("op=", op);
+    // console.log("output=", output);
+    // console.log("apply(input, op)=", apply(input, op));
+    let data = apply(input, op)
+    console.log('data=',data._root.entries[0])
     expect(apply(input, op)).toEqual(output);
   });
 
+  // 数组
   it("inserts inside List", () => {
     const input = fromJS({ a: [1] });
     const output = fromJS({ a: [2, 1] });
     const op = insertOp(["a", 0], 2);
-
+    console.log('input=',input)
+    console.log('op=',op)
+    console.log('output=',output)
     expect(apply(input, op)).toEqual(output);
   });
 
@@ -98,7 +129,7 @@ describe("editOp", () => {
     const output = fromJS({ a: [new Delta([{ insert: "Foo Bar" }])] });
     const op = editOp(["a", 0], "rich-text", [
       { retain: 3 },
-      { insert: " Bar" }
+      { insert: " Bar" },
     ]);
 
     expect(apply(input, op)).toEqual(output);
@@ -190,7 +221,7 @@ describe("fancy tests", () => {
     const output = fromJS({
       a: new Delta([{ insert: "Foo Bar" }]),
       b: 8,
-      c: "Foo Bar"
+      c: "Foo Bar",
     });
 
     const op = [
@@ -199,7 +230,7 @@ describe("fancy tests", () => {
       insertOp(["a"], new Delta()),
       editOp(["a"], "rich-text", [{ insert: "Foo Bar" }]),
       insertOp(["c"], ""),
-      editOp(["c"], "text-unicode", ["Foo Bar"])
+      editOp(["c"], "text-unicode", ["Foo Bar"]),
     ].reduce(type.compose, null);
 
     expect(apply(input, op)).toEqual(output);
@@ -210,7 +241,7 @@ describe("fancy tests", () => {
     const output = fromJS({ X: { Y: {} } });
     const op = [
       ["x", { p: 0 }, "y", { p: 1 }],
-      ["X", { d: 0 }, "Y", { d: 1 }]
+      ["X", { d: 0 }, "Y", { d: 1 }],
     ];
 
     expect(apply(input, op)).toEqual(output);
@@ -226,7 +257,7 @@ describe("fancy tests", () => {
       ["z", { p: 2 }],
       [0, { d: 0 }],
       [1, { d: 1 }],
-      [2, { d: 2 }]
+      [2, { d: 2 }],
     ];
 
     expect(apply(input, op)).toEqual(output);
@@ -237,7 +268,7 @@ describe("fancy tests", () => {
     const output = fromJS({ y: { x: { secret: "data" } } });
     const op = [
       ["x", [{ r: {} }, ["y", { p: 0 }]]],
-      ["y", [{ i: {} }, ["x", { d: 0 }]]]
+      ["y", [{ i: {} }, ["x", { d: 0 }]]],
     ];
 
     expect(apply(input, op)).toEqual(output);
